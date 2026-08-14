@@ -26,7 +26,6 @@ services:
       POSTGRES_USER: goldflow
       POSTGRES_PWD: goldflow_dev
       POSTGRES_SEEDS: db
-      DYNAMIC_CONFIG_FILE_PATH: config/dynamicconfig/development-sql.yaml
     ports:
       - "7233:7233"
 

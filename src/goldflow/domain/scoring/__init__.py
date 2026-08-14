@@ -126,7 +126,9 @@ def _contamination_discount(features: tuple[FeatureValue, ...]) -> float:
 
 
 def _uncertainty(features: tuple[FeatureValue, ...], evidence: tuple[Evidence, ...]) -> float:
-    """More grounded families and heavier evidence => lower uncertainty."""
+    """More grounded families, heavier evidence and direct measurements => lower
+    uncertainty. Without any direct geochemistry the floor stays >= 0.30: map-
+    derived context alone never yields a confident prospect."""
     core_families = (FeatureFamily.SOURCE_SYSTEM, FeatureFamily.TRANSPORT, FeatureFamily.TRAP)
     covered = sum(
         1 for fam in core_families if any(f.family == fam and f.grounded for f in features)
@@ -134,7 +136,13 @@ def _uncertainty(features: tuple[FeatureValue, ...], evidence: tuple[Evidence, .
     coverage = covered / len(core_families)
     unique = dedupe_evidence(evidence)
     evidence_mass = min(1.0, len(unique) / 8.0)
-    return round(1.0 - (0.6 * coverage + 0.4 * evidence_mass), 4)
+    from goldflow.domain.evidence import EvidenceKind  # noqa: PLC0415 — cycle guard
+
+    direct = 1.0 if any(
+        e.kind in (EvidenceKind.GEOCHEMICAL_SAMPLE, EvidenceKind.ASSAY_RESULT)
+        for e in unique
+    ) else 0.0
+    return round(1.0 - (0.45 * coverage + 0.25 * evidence_mass + 0.30 * direct), 4)
 
 
 def score_target(features: TargetFeatures) -> Result[ScoreSnapshot, EvidenceQualityError]:

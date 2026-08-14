@@ -34,14 +34,14 @@ async def main() -> int:
             result = await service.ingest_pilot(PILOT_BBOX)
             match result:
                 case Ok(report):
-                    print(  # noqa: T201
+                    print(
                         f"segments={report.segments} springs={report.springs} "
                         f"stations={report.stations} geology={report.geology_units} "
                         f"faults={report.faults} verified_flow={report.flow_upgraded_segments}"
                     )
                     return 0
                 case Err(error):
-                    print(f"ingestion failed: {error}", file=sys.stderr)  # noqa: T201
+                    print(f"ingestion failed: {error}", file=sys.stderr)
                     return 1
     return 1
 

@@ -353,7 +353,16 @@ class TargetRepository:
             )
             self._session.add(row)
             await self._session.flush()
-            return Ok(_target_from_row(row))
+            # Fresh rows still hold the WKT literal, not a WKBElement — build directly.
+            return Ok(
+                ProspectTarget(
+                    id=TargetId(row.id),
+                    waterway_segment_id=WaterwaySegmentId(row.waterway_segment_id),
+                    location=location,
+                    state=TargetState(row.state),
+                    actionability=Actionability(row.actionability),
+                )
+            )
         except SQLAlchemyError as exc:
             return _db_err("target.upsert_for_segment", exc)
 

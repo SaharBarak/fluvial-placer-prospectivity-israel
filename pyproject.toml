@@ -65,6 +65,8 @@ ignore = [
 "src/goldflow/infrastructure/db/spatial.py" = ["S608"]  # static SQL fragments, bound params
 "src/goldflow/infrastructure/water_authority/__init__.py" = ["RUF001"]  # Hebrew column names
 "src/goldflow/application/services/ingestion.py" = ["RUF001", "PLR0912"]  # Hebrew fields; ingest branching mirrors source formats
+"src/goldflow/application/services/research.py" = ["PLR0911", "PLR0912", "PLR0915"]  # single pipeline function mirrors PRD §23.2 stage order
+"scripts/**" = ["T201", "S603", "S607", "SLF001", "UP031", "BLE001"]  # operational tooling
 
 [tool.pyright]
 typeCheckingMode = "strict"
