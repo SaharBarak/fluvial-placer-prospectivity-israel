@@ -1,0 +1,85 @@
+[project]
+name = "goldflow"
+version = "0.1.0"
+description = "GoldFlow Israel — agentic geospatial prospecting for placer gold in flowing Israeli streams"
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "pydantic>=2.9",
+    "pydantic-settings>=2.6",
+    "sqlalchemy[asyncio]>=2.0.36",
+    "geoalchemy2>=0.16",
+    "asyncpg>=0.30",
+    "psycopg[binary]>=3.2",
+    "alembic>=1.14",
+    "shapely>=2.0.6",
+    "pyproj>=3.7",
+    "httpx>=0.28",
+    "temporalio>=1.8",
+    "orjson>=3.10",
+    "openpyxl>=3.1",
+    "structlog>=24.4",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "pytest-asyncio>=0.24",
+    "hypothesis>=6.115",
+    "ruff>=0.8",
+    "pyright>=1.1.390",
+    "anyio>=4.6",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/goldflow"]
+
+[tool.ruff]
+line-length = 100
+target-version = "py313"
+src = ["src", "apps", "tests"]
+
+[tool.ruff.lint]
+select = [
+    "E", "F", "W", "I", "B", "UP", "SIM", "RUF",
+    "ANN", "ARG", "C4", "DTZ", "ERA", "G", "N", "PERF",
+    "PIE", "PL", "PTH", "RET", "S", "T20", "TRY",
+]
+ignore = [
+    "TRY003",  # long exception messages are acceptable in typed errors
+    "PLR0913", # domain constructors legitimately take many value objects
+    "PLR0917", # same: positional value objects at domain boundaries
+    "PLR2004", # banding thresholds ARE the versioned domain config; named nearby
+    "N818",    # typed error values are frozen dataclasses, not Exceptions
+]
+
+[tool.ruff.lint.per-file-ignores]
+"tests/**" = ["S101", "PLR2004", "ANN", "D"]
+"migrations/**" = ["ANN", "ERA001"]
+
+[tool.pyright]
+typeCheckingMode = "strict"
+pythonVersion = "3.13"
+include = ["src", "apps"]
+reportUnknownParameterType = "error"
+reportUnknownArgumentType = "error"
+reportUnknownVariableType = "error"
+reportMissingTypeStubs = "none"
+
+[tool.pytest.ini_options]
+addopts = "-q --strict-markers --strict-config"
+asyncio_mode = "auto"
+testpaths = ["tests"]
+markers = [
+    "integration: requires live PostGIS",
+    "contract: requires live external services",
+    "e2e: full stack",
+]
+
+[tool.uv]
+package = true
