@@ -138,11 +138,14 @@ def _uncertainty(features: tuple[FeatureValue, ...], evidence: tuple[Evidence, .
     evidence_mass = min(1.0, len(unique) / 8.0)
     from goldflow.domain.evidence import EvidenceKind  # noqa: PLC0415 — cycle guard
 
-    direct = 1.0 if any(
-        e.kind in (EvidenceKind.GEOCHEMICAL_SAMPLE, EvidenceKind.ASSAY_RESULT)
+    direct_count = sum(
+        1
         for e in unique
-    ) else 0.0
-    return round(1.0 - (0.45 * coverage + 0.25 * evidence_mass + 0.30 * direct), 4)
+        if e.kind in (EvidenceKind.GEOCHEMICAL_SAMPLE, EvidenceKind.ASSAY_RESULT)
+    )
+    direct = min(1.0, direct_count / 3.0)  # one assay is not certainty
+    raw = 1.0 - (0.45 * coverage + 0.25 * evidence_mass + 0.30 * direct)
+    return round(max(0.05, raw), 4)  # epistemic floor: never claim zero uncertainty
 
 
 def score_target(features: TargetFeatures) -> Result[ScoreSnapshot, EvidenceQualityError]:

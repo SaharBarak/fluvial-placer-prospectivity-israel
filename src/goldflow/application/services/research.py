@@ -136,6 +136,17 @@ class TargetResearchService:
                     case Err():
                         continue
 
+        # Merge previously committed evidence near the segment (assays, remote
+        # sensing, earlier runs) so ground truth always reaches the scorer.
+        # A failure here would leave the transaction aborted — fail loudly.
+        nearby_result = await self._evidence.near_segment(segment_id)
+        match nearby_result:
+            case Err(error):
+                return Err(ResearchError(code=error.code, message=error.message))
+            case Ok(nearby):
+                known_ids = {e.id for e in committed}
+                committed.extend(e for e in nearby if e.id not in known_ids)
+
         # --- CRITIQUING: mandatory critic pass (AC-06) ---
         critic_artifact = critique_target(segment, facts, tuple(committed))
 

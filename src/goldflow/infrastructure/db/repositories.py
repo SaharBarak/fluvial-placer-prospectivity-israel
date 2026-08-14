@@ -248,17 +248,26 @@ class EvidenceRepository:
         self, segment_id: WaterwaySegmentId, radius_m: float = 3000.0
     ) -> Result[tuple[Evidence, ...], DatabaseError]:
         try:
+            id_rows = await self._session.execute(
+                text(
+                    """
+                    SELECT e.id FROM core.evidence e
+                    JOIN core.waterway_segment ws ON ws.id = CAST(:sid AS uuid)
+                    WHERE e.geom IS NOT NULL
+                      AND ST_DWithin(e.geom, ws.geom, :radius)
+                    ORDER BY e.created_at
+                    """
+                ),
+                {"sid": str(segment_id), "radius": radius_m},
+            )
+            ids = [row[0] for row in id_rows]
+            if not ids:
+                return Ok(())
             rows = (
                 (
                     await self._session.execute(
                         select(EvidenceRow)
-                        .where(
-                            text(
-                                "ST_DWithin(core.evidence.geom, "
-                                "(SELECT geom FROM core.waterway_segment WHERE id = :sid), "
-                                ":radius)"
-                            ).bindparams(sid=str(segment_id), radius=radius_m)
-                        )
+                        .where(EvidenceRow.id.in_(ids))
                         .order_by(EvidenceRow.created_at)
                     )
                 )
