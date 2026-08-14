@@ -61,6 +61,8 @@ ignore = [
 [tool.ruff.lint.per-file-ignores]
 "tests/**" = ["S101", "PLR2004", "ANN", "D"]
 "migrations/**" = ["ANN", "ERA001"]
+"src/goldflow/infrastructure/db/models.py" = ["RUF012"]  # SQLAlchemy declarative contract
+"src/goldflow/infrastructure/db/spatial.py" = ["S608"]  # static SQL fragments, bound params
 
 [tool.pyright]
 typeCheckingMode = "strict"
