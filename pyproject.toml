@@ -63,6 +63,8 @@ ignore = [
 "migrations/**" = ["ANN", "ERA001"]
 "src/goldflow/infrastructure/db/models.py" = ["RUF012"]  # SQLAlchemy declarative contract
 "src/goldflow/infrastructure/db/spatial.py" = ["S608"]  # static SQL fragments, bound params
+"src/goldflow/infrastructure/water_authority/__init__.py" = ["RUF001"]  # Hebrew column names
+"src/goldflow/application/services/ingestion.py" = ["RUF001", "PLR0912"]  # Hebrew fields; ingest branching mirrors source formats
 
 [tool.pyright]
 typeCheckingMode = "strict"
