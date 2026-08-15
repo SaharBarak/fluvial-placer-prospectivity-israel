@@ -79,12 +79,31 @@ class ScoreSnapshot:
         return tuple(sorted(positive, key=lambda c: (-c.contribution, c.feature))[:n])
 
 
-# Weights are versioned config, not prompts (PRD §5.2).
+# Weights are versioned config, not prompts (PRD §5.2). The active set lives
+# in ops.model_registry; this constant is the v1 baseline and test default.
 FAMILY_WEIGHTS: dict[FeatureFamily, float] = {
     FeatureFamily.SOURCE_SYSTEM: 0.40,
     FeatureFamily.TRANSPORT: 0.25,
     FeatureFamily.TRAP: 0.35,
 }
+
+
+@dataclass(frozen=True, slots=True)
+class ScoringModel:
+    """A versioned weight set resolved from the model registry."""
+
+    version: str
+    weights: tuple[tuple[FeatureFamily, float], ...]
+
+    @classmethod
+    def baseline(cls) -> ScoringModel:
+        return cls(
+            version=SCORING_MODEL_VERSION,
+            weights=tuple(FAMILY_WEIGHTS.items()),
+        )
+
+    def weight_map(self) -> dict[FeatureFamily, float]:
+        return dict(self.weights)
 
 
 def _family_subscore(
@@ -148,8 +167,12 @@ def _uncertainty(features: tuple[FeatureValue, ...], evidence: tuple[Evidence, .
     return round(max(0.05, raw), 4)  # epistemic floor: never claim zero uncertainty
 
 
-def score_target(features: TargetFeatures) -> Result[ScoreSnapshot, EvidenceQualityError]:
+def score_target(
+    features: TargetFeatures, model: ScoringModel | None = None
+) -> Result[ScoreSnapshot, EvidenceQualityError]:
     """Deterministic score composition. Pure; invariant to feature/evidence order."""
+    active_model = model if model is not None else ScoringModel.baseline()
+    family_weights = active_model.weight_map()
     ungrounded_nonzero = [
         f for f in features.features if not f.grounded and f.normalized > 0.0
     ]
@@ -164,7 +187,7 @@ def score_target(features: TargetFeatures) -> Result[ScoreSnapshot, EvidenceQual
 
     components: list[ScoreComponent] = []
     weighted_sum = 0.0
-    for family, weight in FAMILY_WEIGHTS.items():
+    for family, weight in family_weights.items():
         subscore, members = _family_subscore(features.features, family)
         weighted_sum += weight * subscore
         components.extend(
@@ -220,7 +243,7 @@ def score_target(features: TargetFeatures) -> Result[ScoreSnapshot, EvidenceQual
     return Ok(
         ScoreSnapshot(
             target_id=features.target_id,
-            model_version=SCORING_MODEL_VERSION,
+            model_version=active_model.version,
             score=final,
             uncertainty=_uncertainty(features.features, features.evidence),
             components=tuple(sorted(components, key=lambda c: (c.family.value, c.feature))),

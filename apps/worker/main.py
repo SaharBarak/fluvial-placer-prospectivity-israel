@@ -9,8 +9,14 @@ from temporalio.worker import Worker
 
 from goldflow.application.workflows.research import (
     TASK_QUEUE,
+    CalibrationWorkflow,
+    IngestRefreshWorkflow,
     ProspectResearchWorkflow,
+    ScheduledResearchWorkflow,
+    act_create_run_record,
+    act_refresh_ingestion,
     act_research_segment,
+    act_run_calibration,
     act_select_segments,
     act_set_run_state,
 )
@@ -25,8 +31,20 @@ async def main() -> None:
     worker = Worker(
         client,
         task_queue=TASK_QUEUE,
-        workflows=[ProspectResearchWorkflow],
-        activities=[act_set_run_state, act_select_segments, act_research_segment],
+        workflows=[
+            ProspectResearchWorkflow,
+            ScheduledResearchWorkflow,
+            IngestRefreshWorkflow,
+            CalibrationWorkflow,
+        ],
+        activities=[
+            act_set_run_state,
+            act_select_segments,
+            act_research_segment,
+            act_refresh_ingestion,
+            act_run_calibration,
+            act_create_run_record,
+        ],
     )
     await worker.run()
 

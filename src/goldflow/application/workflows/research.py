@@ -53,6 +53,27 @@ async def act_research_segment(segment_id: str, run_id: str) -> dict[str, Any]:
     return await research_segment(segment_id, run_id)
 
 
+@activity.defn
+async def act_refresh_ingestion() -> dict[str, Any]:
+    from goldflow.application.workflows.runtime import refresh_ingestion  # noqa: PLC0415
+
+    return await refresh_ingestion()
+
+
+@activity.defn
+async def act_run_calibration() -> dict[str, Any]:
+    from goldflow.application.workflows.runtime import run_calibration  # noqa: PLC0415
+
+    return await run_calibration()
+
+
+@activity.defn
+async def act_create_run_record(run_id: str, executor: str, max_targets: int) -> None:
+    from goldflow.application.workflows.runtime import create_run_record  # noqa: PLC0415
+
+    await create_run_record(run_id, executor, max_targets)
+
+
 # --- Workflow (deterministic) ---
 
 
@@ -99,4 +120,49 @@ class ProspectResearchWorkflow:
             )
         return ResearchOutcomeSummary(
             run_id=cmd.run_id, targets=outcomes, failed_segments=failed
+        )
+
+
+@workflow.defn
+class IngestRefreshWorkflow:
+    """Scheduled: re-derive flow classification from live official sources.
+
+    Flow evidence expires; without this refresh the FlowGate goes dark and
+    every target degrades to BLOCKED_NO_FLOW — by design, not by accident.
+    """
+
+    @workflow.run
+    async def run(self) -> dict[str, Any]:
+        return await workflow.execute_activity(
+            act_refresh_ingestion, start_to_close_timeout=timedelta(minutes=20)
+        )
+
+
+@workflow.defn
+class ScheduledResearchWorkflow:
+    """Scheduled: full research pass over verified-flow segments."""
+
+    @workflow.run
+    async def run(self) -> ResearchOutcomeSummary:
+        run_id = str(workflow.uuid4())  # deterministic under replay
+        await workflow.execute_activity(
+            act_create_run_record,
+            args=[run_id, "temporal-schedule", 30],
+            start_to_close_timeout=timedelta(minutes=2),
+        )
+        return await workflow.execute_child_workflow(
+            ProspectResearchWorkflow.run,
+            ResearchCommand(run_id=run_id, max_targets=30),
+            id=f"research-{run_id}",
+        )
+
+
+@workflow.defn
+class CalibrationWorkflow:
+    """Scheduled: field labels → calibration report → CANDIDATE weight set."""
+
+    @workflow.run
+    async def run(self) -> dict[str, Any]:
+        return await workflow.execute_activity(
+            act_run_calibration, start_to_close_timeout=timedelta(minutes=10)
         )

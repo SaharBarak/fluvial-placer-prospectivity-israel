@@ -431,6 +431,72 @@ async def start_research_run(
     return {"run_id": run_id, "state": "CREATED"}
 
 
+@app.get("/v1/models")
+async def list_models(session: SessionDep) -> dict[str, Any]:
+    rows = (
+        await session.execute(
+            text(
+                """
+                SELECT version, kind, weights, status, metrics, created_at, activated_at
+                FROM ops.model_registry ORDER BY created_at DESC
+                """
+            )
+        )
+    ).all()
+    return {
+        "models": [
+            {
+                "version": r.version,
+                "kind": r.kind,
+                "weights": r.weights,
+                "status": r.status,
+                "metrics": r.metrics,
+                "created_at": r.created_at.isoformat(),
+                "activated_at": r.activated_at.isoformat() if r.activated_at else None,
+            }
+            for r in rows
+        ]
+    }
+
+
+@app.post("/v1/models/{version}/activate")
+async def activate_model(version: str, session: SessionDep) -> dict[str, Any]:
+    """Human-gated activation (PRD §15): retire current ACTIVE, promote candidate.
+
+    Old ScoreSnapshots are never recomputed (§23.5); the next research run
+    simply scores under the newly active version.
+    """
+    candidate = (
+        await session.execute(
+            text("SELECT version FROM ops.model_registry WHERE version = :v"),
+            {"v": version},
+        )
+    ).one_or_none()
+    if candidate is None:
+        raise HTTPException(status_code=404, detail="model version not found")
+    await session.execute(
+        text(
+            "UPDATE ops.model_registry SET status = 'RETIRED' "
+            "WHERE status = 'ACTIVE' AND kind = 'scoring-weights'"
+        )
+    )
+    await session.execute(
+        text(
+            "UPDATE ops.model_registry SET status = 'ACTIVE', activated_at = now() "
+            "WHERE version = :v"
+        ),
+        {"v": version},
+    )
+    await session.commit()
+    return {"activated": version}
+
+
+@app.post("/v1/calibration/run", status_code=200)
+async def trigger_calibration() -> dict[str, Any]:
+    """Run calibration now (same code path as the scheduled CalibrationWorkflow)."""
+    return await runtime.run_calibration()
+
+
 @app.get("/healthz")
 async def healthz(session: SessionDep) -> dict[str, str]:
     await session.execute(text("SELECT 1"))

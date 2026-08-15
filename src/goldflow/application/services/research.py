@@ -20,7 +20,7 @@ from goldflow.domain.features import EvidenceBundle, SpatialContext, build_targe
 from goldflow.domain.guardrails import GuardrailInputs, evaluate_guardrails
 from goldflow.domain.planning import choose_next_measurement
 from goldflow.domain.results import Err, Ok, Result
-from goldflow.domain.scoring import score_target
+from goldflow.domain.scoring import ScoringModel, score_target
 from goldflow.domain.targets import (
     Actionability,
     ProspectTarget,
@@ -73,8 +73,10 @@ class TargetResearchService:
         session: AsyncSession,
         gsi_source_id: SourceId,
         water_source_id: SourceId,
+        scoring_model: ScoringModel | None = None,
     ) -> None:
         self._session = session
+        self._scoring_model = scoring_model
         self._segments = SegmentRepository(session)
         self._targets = TargetRepository(session)
         self._evidence = EvidenceRepository(session)
@@ -193,7 +195,7 @@ class TargetResearchService:
                 return Err(ResearchError(code=error.code, message=error.message))
             case Ok(features):
                 pass
-        score_result = score_target(features)
+        score_result = score_target(features, self._scoring_model)
         match score_result:
             case Err(error):
                 return Err(ResearchError(code=error.code, message=error.message))
