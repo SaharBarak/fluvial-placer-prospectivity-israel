@@ -56,9 +56,9 @@ def analyze_geology(
             location=segment_midpoint,
             observed_value=None,
             claim=(
-                f"Upstream lithology '{lith.description}' covers "
-                f"{lith.area_fraction:.0%} of the drainage zone "
-                f"(favorability {favorability:.2f})"
+                f"ליתולוגיה במעלה האגן: '{lith.description}' מכסה "
+                f"{lith.area_fraction:.0%} מאזור הניקוז "
+                f"(התאמה {favorability:.2f})"
             ),
             confidence=Probability(0.85),
             quality=EvidenceQuality.HIGH,
@@ -87,8 +87,8 @@ def analyze_geology(
             location=segment_midpoint,
             observed_value=None,
             claim=(
-                f"Nearest mapped fault at {facts.nearest_fault_distance.value:.0f} m "
-                "from segment"
+                f"העתק ממופה קרוב במרחק {facts.nearest_fault_distance.value:.0f} מ' "
+                "מהמקטע"
             ),
             confidence=Probability(0.8),
             quality=EvidenceQuality.HIGH,
@@ -119,8 +119,8 @@ def analyze_geology(
         objections=(),
         next_actions=(),
         rationale_summary=cite(
-            f"Mapped {len(facts.upstream_lithologies)} upstream lithology units and "
-            f"fault context from GSI 1:200k layers",
+            f"מופו {len(facts.upstream_lithologies)} יחידות ליתולוגיות במעלה האגן "
+            "והקשר העתקים משכבות GSI 1:200k",
             tuple(e.id for e in proposed),
         ),
     )

@@ -52,10 +52,10 @@ async def main() -> int:
     median_cloud = statistics.median(clouds) if clouds else None
     item_refs = ",".join(i.item_id for i in items[:5])
     claim = (
-        f"Sentinel-2 L2A coverage: {len(items)} scenes in {LOOKBACK_DAYS} d over pilot "
-        f"basin; median cloud {median_cloud:.0f}%"
+        f"כיסוי Sentinel-2 L2A: {len(items)} סצנות ב-{LOOKBACK_DAYS} ימים באגן "
+        f"הפיילוט; עננות חציונית {median_cloud:.0f}%"
         if median_cloud is not None
-        else f"Sentinel-2 L2A coverage: {len(items)} scenes in {LOOKBACK_DAYS} d"
+        else f"כיסוי Sentinel-2 L2A: {len(items)} סצנות ב-{LOOKBACK_DAYS} ימים"
     )
 
     async with sessions() as session:

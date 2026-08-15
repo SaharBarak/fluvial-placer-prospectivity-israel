@@ -43,9 +43,9 @@ def critique_target(
                 kind=ObjectionKind.NON_GOLD_LITHOLOGY,
                 severity=ObjectionSeverity.HIGH,
                 statement=(
-                    f"Carbonate/low-favorability lithology covers "
-                    f"{carbonate_fraction:.0%} of the upstream zone; no plausible "
-                    "proximal source system for placer gold"
+                    f"ליתולוגיה קרבונטית/דלת-התאמה מכסה "
+                    f"{carbonate_fraction:.0%} מהאזור במעלה; אין מערכת מקור "
+                    "קרובה סבירה לזהב סחף"
                 ),
                 evidence_ids=tuple(
                     e.id for e in committed_evidence if e.kind == EvidenceKind.GEOLOGICAL_UNIT
@@ -59,8 +59,8 @@ def critique_target(
                 kind=ObjectionKind.CONTAMINATION_ALTERNATIVE,
                 severity=ObjectionSeverity.MEDIUM,
                 statement=(
-                    "Water-quality alert near segment: anthropogenic metal input can "
-                    "explain geochemical signals without a gold-bearing system"
+                    "התרעת איכות מים סמוך למקטע: קלט מתכות אנתרופוגני יכול "
+                    "להסביר אותות גיאוכימיים ללא מערכת נושאת זהב"
                 ),
                 evidence_ids=tuple(
                     e.id for e in committed_evidence if e.kind == EvidenceKind.WATER_QUALITY
@@ -74,8 +74,8 @@ def critique_target(
                 kind=ObjectionKind.FLOW_UNVERIFIED,
                 severity=ObjectionSeverity.HIGH,
                 statement=(
-                    f"Flow status {segment.flow_status.value}: underwater prospecting "
-                    "scope requires verified current flow"
+                    f"סטטוס זרימה {segment.flow_status.value}: חיפוש תת-מימי "
+                    "מחייב זרימה עדכנית מאומתת"
                 ),
                 evidence_ids=(),
             )
@@ -87,8 +87,8 @@ def critique_target(
                 kind=ObjectionKind.WEAK_EVIDENCE,
                 severity=ObjectionSeverity.MEDIUM,
                 statement=(
-                    f"Only {len(committed_evidence)} evidence items; ranking rests on "
-                    "geometric derivations more than measured data"
+                    f"רק {len(committed_evidence)} פריטי ראיות; הדירוג נשען על "
+                    "נגזרות גיאומטריות יותר מאשר על נתונים מדודים"
                 ),
                 evidence_ids=(),
             )
@@ -99,8 +99,8 @@ def critique_target(
             kind=ObjectionKind.SENSOR_LIMITATION,
             severity=ObjectionSeverity.LOW,
             statement=(
-                "No direct Au measurement exists for this segment; all satellite/"
-                "map-derived signals are indirect proxies (AC-14)"
+                "אין מדידת Au ישירה למקטע זה; כל האותות מלוויין/מפות הם "
+                "פרוקסי עקיף בלבד (AC-14)"
             ),
             evidence_ids=(),
         )
@@ -113,8 +113,8 @@ def critique_target(
         objections=tuple(objections),
         next_actions=(),
         rationale_summary=cite(
-            f"Raised {len(objections)} objections; strongest alternative: "
-            + (objections[0].statement[:80] if objections else "none"),
+            f"הועלו {len(objections)} התנגדויות; ההסבר החלופי החזק ביותר: "
+            + (objections[0].statement[:80] if objections else "אין"),
             (),
         ),
     )

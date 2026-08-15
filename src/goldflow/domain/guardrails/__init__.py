@@ -94,7 +94,7 @@ def evaluate_guardrails(inputs: GuardrailInputs) -> GuardrailVerdict:
                     status="BLOCK",
                     reason_code=GuardrailReason.FLOW_NOT_VERIFIED,
                     evidence_ids=(),
-                    remediation="acquire current flow evidence for the segment",
+                    remediation="נדרשת ראיית זרימה עדכנית למקטע",
                 )
             )
 
@@ -105,7 +105,7 @@ def evaluate_guardrails(inputs: GuardrailInputs) -> GuardrailVerdict:
                 status="REVIEW",
                 reason_code=GuardrailReason.PROTECTED_AREA,
                 evidence_ids=inputs.protected_area_evidence,
-                remediation="physical sampling requires explicit permission review",
+                remediation="דיגום פיזי מחייב בחינת הרשאה מפורשת",
             )
         )
 
@@ -116,7 +116,7 @@ def evaluate_guardrails(inputs: GuardrailInputs) -> GuardrailVerdict:
                 status="BLOCK",
                 reason_code=GuardrailReason.WATER_QUALITY_ALERT,
                 evidence_ids=inputs.water_quality_evidence,
-                remediation="do not enter/immerse in affected segment",
+                remediation="אין להיכנס/לטבול במקטע המושפע",
             )
         )
 
@@ -137,7 +137,7 @@ def evaluate_guardrails(inputs: GuardrailInputs) -> GuardrailVerdict:
                 status="BLOCK",
                 reason_code=GuardrailReason.FLOOD_WARNING,
                 evidence_ids=(),
-                remediation="wait for flood/weather warning to clear",
+                remediation="יש להמתין לסיום התרעת שיטפון/מזג אוויר",
             )
         )
 
@@ -149,7 +149,7 @@ def evaluate_guardrails(inputs: GuardrailInputs) -> GuardrailVerdict:
             status="REVIEW",
             reason_code=GuardrailReason.MINING_RIGHTS_REVIEW,
             evidence_ids=(),
-            remediation="collection/extraction requires permit; research mapping allowed",
+            remediation="איסוף/כרייה מחייבים היתר; מיפוי מחקרי מותר",
         )
     )
 

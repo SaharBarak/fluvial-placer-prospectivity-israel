@@ -20,7 +20,7 @@ export default function App() {
   const gsiLayerIds = useRef<string[]>([]);
   const [dossier, setDossier] = useState<Dossier | null>(null);
   const [gsiVisible, setGsiVisible] = useState(true);
-  const [status, setStatus] = useState("loading…");
+  const [status, setStatus] = useState("טוען…");
 
   const loadDossier = useCallback(async (targetId: string) => {
     const response = await fetch(`/v1/targets/${targetId}/dossier`);
@@ -37,7 +37,7 @@ export default function App() {
 
   const submitAssay = useCallback(
     async (targetId: string, valuePpb: number) => {
-      setStatus("submitting assay + re-scoring…");
+      setStatus("שולח תוצאת מעבדה ומדרג מחדש…");
       const response = await fetch("/v1/assay-results", {
         method: "POST",
         headers: {
@@ -55,9 +55,9 @@ export default function App() {
       if (response.ok) {
         await refreshTargets();
         await loadDossier(targetId);
-        setStatus("re-scored after assay");
+        setStatus("דורג מחדש לאחר תוצאת מעבדה");
       } else {
-        setStatus(`assay failed: ${response.status}`);
+        setStatus(`שליחת התוצאה נכשלה: ${response.status}`);
       }
     },
     [refreshTargets, loadDossier],
@@ -202,7 +202,7 @@ export default function App() {
         map.getCanvas().style.cursor = "";
       });
 
-      setStatus(`${targets.features.length} targets · ${segments.features.length} segments`);
+      setStatus(`${targets.features.length} מטרות · ${segments.features.length} מקטעים`);
     });
 
     return () => {
@@ -232,12 +232,12 @@ export default function App() {
             checked={gsiVisible}
             onChange={(e) => setGsiVisible(e.target.checked)}
           />
-          GSI geology overlay
+          שכבת גיאולוגיה GSI
         </label>
         <span className="legend">
-          <i style={{ background: FLOW_COLORS.VERIFIED_PERENNIAL }} /> perennial
-          <i style={{ background: FLOW_COLORS.VERIFIED_CURRENT }} /> current
-          <i style={{ background: FLOW_COLORS.SEASONAL_EXPECTED }} /> seasonal
+          <i style={{ background: FLOW_COLORS.VERIFIED_PERENNIAL }} /> איתן
+          <i style={{ background: FLOW_COLORS.VERIFIED_CURRENT }} /> זרימה מאומתת
+          <i style={{ background: FLOW_COLORS.SEASONAL_EXPECTED }} /> עונתי
         </span>
       </div>
       {dossier && (

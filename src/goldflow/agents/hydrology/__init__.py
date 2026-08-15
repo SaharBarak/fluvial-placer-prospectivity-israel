@@ -68,9 +68,9 @@ def analyze_hydrology(
     claims: list[Claim] = []
 
     flow_claim = (
-        f"Segment '{segment.name or segment.id}' classified {segment.flow_status.value} "
-        f"(confidence {segment.flow_confidence.value:.2f}) from official spring-discharge/"
-        "hydrometric evidence"
+        f"המקטע '{segment.name or segment.id}' סווג {segment.flow_status.value} "
+        f"(ביטחון {segment.flow_confidence.value:.2f}) על סמך נתוני ספיקת מעיינות "
+        "ותחנות הידרומטריות רשמיים"
     )
     flow_evidence = Evidence(
         id=EvidenceId(uuid4()),
@@ -107,8 +107,8 @@ def analyze_hydrology(
     )
 
     transport_claim = (
-        f"Upstream drainage length {facts.upstream_length_m / 1000:.1f} km with "
-        f"{facts.confluence_count} nearby confluences"
+        f"אורך ניקוז במעלה {facts.upstream_length_m / 1000:.1f} ק\"מ עם "
+        f"{facts.confluence_count} מפגשי ערוצים סמוכים"
     )
     claims.append(
         Claim(
@@ -130,8 +130,8 @@ def analyze_hydrology(
         objections=(),
         next_actions=(),
         rationale_summary=cite(
-            f"Flow status {segment.flow_status.value}; upstream connectivity "
-            f"{facts.upstream_length_m / 1000:.1f} km",
+            f"סטטוס זרימה {segment.flow_status.value}; קישוריות במעלה "
+            f"{facts.upstream_length_m / 1000:.1f} ק\"מ",
             (flow_evidence.id,),
         ),
     )

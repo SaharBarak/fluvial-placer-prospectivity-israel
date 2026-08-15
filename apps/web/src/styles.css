@@ -6,7 +6,7 @@ body,
 #root {
   margin: 0;
   height: 100%;
-  font-family: "Helvetica Neue", Arial, sans-serif;
+  font-family: "Segoe UI", "Helvetica Neue", Arial, "Noto Sans Hebrew", sans-serif;
 }
 .app {
   position: relative;
@@ -63,7 +63,7 @@ body,
 .dossier {
   position: absolute;
   top: 60px;
-  right: 10px;
+  inset-inline-end: 10px;
   bottom: 10px;
   width: 380px;
   overflow-y: auto;
@@ -72,7 +72,7 @@ body,
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
   padding: 14px 16px;
   z-index: 6;
-  direction: ltr;
+  direction: rtl;
 }
 .dossier header {
   display: flex;
@@ -141,6 +141,13 @@ body,
 .mono {
   font-family: ui-monospace, Menlo, monospace;
   font-size: 11px;
+  direction: ltr;
+  unicode-bidi: embed;
+}
+.evClaim {
+  direction: ltr;
+  text-align: right;
+  unicode-bidi: plaintext;
 }
 .small {
   font-size: 10px;

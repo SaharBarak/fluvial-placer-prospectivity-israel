@@ -346,9 +346,9 @@ async def submit_assay(
             "lod": submission.lod,
             "below": submission.below_detection,
             "claim": (
-                f"Field assay: {submission.analyte} = {submission.value} "
+                f"בדיקת מעבדה משטח: {submission.analyte} = {submission.value} "
                 f"{submission.unit}"
-                + (f" (lab: {submission.lab})" if submission.lab else "")
+                + (f" (מעבדה: {submission.lab})" if submission.lab else "")
             ),
             "source_id": source_id,
             "ref": f"sample/{sample_id}",

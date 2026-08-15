@@ -63,7 +63,7 @@ def choose_next_measurement(
             decision_impact=0.9,
             normalized_cost=0.2,
             actionability=actionability,
-            rationale="flow status gates field eligibility; verifying flow unlocks the pipeline",
+            rationale="סטטוס הזרימה חוסם כשירות שטח; אימות זרימה פותח את ההמשך",
         )
     if not has_geochemistry and score_value >= 40.0:
         return MeasurementProposal(
@@ -73,7 +73,7 @@ def choose_next_measurement(
             decision_impact=1.0,
             normalized_cost=0.5,
             actionability=actionability,
-            rationale="no direct geochemistry yet; a first assay maximally reduces uncertainty",
+            rationale="אין עדיין גיאוכימיה ישירה; בדיקת מעבדה ראשונה מצמצמת אי-ודאות באופן מרבי",
         )
     if score_value < 40.0:
         return MeasurementProposal(
@@ -83,7 +83,7 @@ def choose_next_measurement(
             decision_impact=0.5,
             normalized_cost=0.1,
             actionability=actionability,
-            rationale="weak signal; cheap desk research before any field spend",
+            rationale="אות חלש; מחקר שולחני זול לפני כל הוצאת שטח",
         )
     return MeasurementProposal(
         target_id=target_id,
@@ -92,5 +92,5 @@ def choose_next_measurement(
         decision_impact=0.8,
         normalized_cost=0.6,
         actionability=actionability,
-        rationale="geochemistry exists; concentrate sampling refines trap understanding",
+        rationale="קיימת גיאוכימיה; דיגום קונצנטרט מחדד את הבנת המלכודת",
     )

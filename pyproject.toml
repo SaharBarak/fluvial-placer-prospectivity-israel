@@ -56,6 +56,7 @@ ignore = [
     "PLR0917", # same: positional value objects at domain boundaries
     "PLR2004", # banding thresholds ARE the versioned domain config; named nearby
     "N818",    # typed error values are frozen dataclasses, not Exceptions
+    "RUF001",  # Hebrew is the product language; ambiguous-unicode is all false positives
 ]
 
 [tool.ruff.lint.per-file-ignores]

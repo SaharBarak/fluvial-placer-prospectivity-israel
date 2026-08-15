@@ -144,8 +144,16 @@ class TargetResearchService:
             case Err(error):
                 return Err(ResearchError(code=error.code, message=error.message))
             case Ok(nearby):
+                # Dedupe by (kind, source reference): the same source feature
+                # enters the bundle once; agent-proposed wording wins.
+                seen_refs = {(e.kind, e.source_ref.reference) for e in committed}
                 known_ids = {e.id for e in committed}
-                committed.extend(e for e in nearby if e.id not in known_ids)
+                for item in nearby:
+                    key = (item.kind, item.source_ref.reference)
+                    if item.id in known_ids or key in seen_refs:
+                        continue
+                    seen_refs.add(key)
+                    committed.append(item)
 
         # --- CRITIQUING: mandatory critic pass (AC-06) ---
         critic_artifact = critique_target(segment, facts, tuple(committed))
@@ -218,6 +226,13 @@ class TargetResearchService:
             observed = transition_target(target, TargetState.OBSERVATION_ONLY)
             if isinstance(observed, Ok):
                 target = observed.value
+
+        # Field-validation loop (PRD §14.1): assay ground truth closes the loop.
+        validation_state = _assay_validation_state(tuple(committed))
+        if validation_state is not None:
+            validated = transition_target(target, validation_state)
+            if isinstance(validated, Ok):
+                target = validated.value
 
         await self._targets.save_state(target)
         await self._scores.add_snapshot(snapshot, UUID(str(run_id)))
@@ -292,6 +307,43 @@ class TargetResearchService:
                 evidence_count=len(committed),
             )
         )
+
+
+# Versioned validation thresholds (validation-v1): Au above this level in stream
+# sediment is anomalous relative to typical <5 ppb background and confirms the
+# target hypothesis; magnitude interpretation stays medium/background-relative.
+AU_VALIDATION_PPB = 50.0
+MIN_NEGATIVE_ASSAYS = 2  # a single below-detection assay is not falsification
+
+
+def _assay_validation_state(evidence: tuple[Evidence, ...]) -> TargetState | None:
+    """Pure mapping of assay ground truth to a validation transition (§14.1)."""
+    assays = [
+        e
+        for e in evidence
+        if e.kind.value == "ASSAY_RESULT"
+        and e.observed_value is not None
+        and e.observed_value.analyte.lower() in ("au", "gold")
+    ]
+    if not assays:
+        return None
+    detected = [
+        a
+        for a in assays
+        if a.observed_value is not None
+        and not a.observed_value.below_detection
+        and a.observed_value.value >= AU_VALIDATION_PPB
+    ]
+    if detected:
+        return TargetState.VALIDATED_POSITIVE
+    below = [
+        a
+        for a in assays
+        if a.observed_value is not None and a.observed_value.below_detection
+    ]
+    if len(below) >= MIN_NEGATIVE_ASSAYS and len(below) == len(assays):
+        return TargetState.VALIDATED_NEGATIVE
+    return None
 
 
 def _rekey(item: Evidence, new_id: EvidenceId) -> Evidence:

@@ -1,4 +1,18 @@
 import type { Dossier } from "./types";
+import {
+  ACTIONABILITY_LABELS,
+  AUTHORITY_LABELS,
+  EVIDENCE_KIND_LABELS,
+  FLOW_LABELS,
+  GUARDRAIL_STATUS_LABELS,
+  MEASUREMENT_LABELS,
+  OBJECTION_LABELS,
+  POLICY_LABELS,
+  QUALITY_LABELS,
+  STATE_LABELS,
+  featureLabel,
+  label,
+} from "./labels";
 
 const STATUS_COLORS: Record<string, string> = {
   ALLOW: "#2e7d32",
@@ -26,41 +40,45 @@ export function DossierPanel({
     <aside className="dossier">
       <header>
         <div>
-          <h2>{dossier.waterway.name ?? "Unnamed segment"}</h2>
+          <h2>{dossier.waterway.name ?? "מקטע ללא שם"}</h2>
           <div className="badges">
-            <span className="badge state">{dossier.state}</span>
-            <span className="badge action">{dossier.actionability}</span>
-            <span className="badge flow">{dossier.waterway.flow_status}</span>
+            <span className="badge state">{label(STATE_LABELS, dossier.state)}</span>
+            <span className="badge action">
+              {label(ACTIONABILITY_LABELS, dossier.actionability)}
+            </span>
+            <span className="badge flow">
+              {label(FLOW_LABELS, dossier.waterway.flow_status)}
+            </span>
           </div>
         </div>
-        <button onClick={onClose} aria-label="close">
+        <button onClick={onClose} aria-label="סגירה">
           ✕
         </button>
       </header>
 
       {score && (
         <section>
-          <h3>Prospect score</h3>
+          <h3>ציון פוטנציאל</h3>
           <div className="scoreRow">
             <div className="scoreBig">{score.value.toFixed(1)}</div>
             <div className="scoreMeta">
-              <div>uncertainty {(score.uncertainty * 100).toFixed(0)}%</div>
+              <div>אי-ודאות {(score.uncertainty * 100).toFixed(0)}%</div>
               <div className="mono">{score.model_version}</div>
             </div>
           </div>
           <p className="note">
-            Relative model score, not a probability of finding gold (PRD §10.1).
+            ציון מודל יחסי — לא הסתברות למציאת זהב (PRD §10.1).
           </p>
         </section>
       )}
 
       {drivers.length > 0 && (
         <section>
-          <h3>Primary drivers</h3>
+          <h3>גורמים מובילים</h3>
           <ul className="drivers">
             {drivers.map((d) => (
               <li key={d.feature}>
-                <span>{d.feature}</span>
+                <span>{featureLabel(d.feature)}</span>
                 <span className="mono">+{d.contribution.toFixed(1)}</span>
               </li>
             ))}
@@ -70,11 +88,11 @@ export function DossierPanel({
 
       {dossier.objections.length > 0 && (
         <section>
-          <h3>Critic objections</h3>
+          <h3>התנגדויות המבקר</h3>
           <ul className="objections">
             {dossier.objections.map((o, i) => (
               <li key={i} className={`sev-${o.severity.toLowerCase()}`}>
-                <strong>{o.kind}</strong> — {o.statement}
+                <strong>{label(OBJECTION_LABELS, o.kind)}</strong> — {o.statement}
               </li>
             ))}
           </ul>
@@ -82,14 +100,16 @@ export function DossierPanel({
       )}
 
       <section>
-        <h3>Evidence ledger ({dossier.evidence.length})</h3>
+        <h3>יומן ראיות ({dossier.evidence.length})</h3>
         <ul className="evidence">
           {dossier.evidence.map((e) => (
             <li key={e.id}>
               <div className="evKind">
-                {e.kind} · {e.quality} · {e.authority}
+                {label(EVIDENCE_KIND_LABELS, e.kind)} ·{" "}
+                {label(QUALITY_LABELS, e.quality)} ·{" "}
+                {label(AUTHORITY_LABELS, e.authority)}
               </div>
-              <div>{e.claim}</div>
+              <div className="evClaim">{e.claim}</div>
               {e.measurement && (
                 <div className="mono">
                   {e.measurement.analyte} = {e.measurement.value}{" "}
@@ -100,7 +120,7 @@ export function DossierPanel({
                 <a href={e.source.url} target="_blank" rel="noreferrer">
                   {e.source.name}
                 </a>{" "}
-                · ref {e.source.reference}
+                · מזהה מקור: <span className="mono">{e.source.reference}</span>
               </div>
             </li>
           ))}
@@ -108,7 +128,7 @@ export function DossierPanel({
       </section>
 
       <section>
-        <h3>Guardrails</h3>
+        <h3>מנגנוני הגנה</h3>
         <ul className="guardrails">
           {dossier.guardrails.map((g) => (
             <li key={g.policy_id}>
@@ -116,7 +136,8 @@ export function DossierPanel({
                 className="dot"
                 style={{ background: STATUS_COLORS[g.status] ?? "#999" }}
               />
-              <strong>{g.policy_id}</strong>: {g.status}
+              <strong>{label(POLICY_LABELS, g.policy_id)}</strong>:{" "}
+              {label(GUARDRAIL_STATUS_LABELS, g.status)}
               {g.remediation ? ` — ${g.remediation}` : ""}
             </li>
           ))}
@@ -125,17 +146,17 @@ export function DossierPanel({
 
       {dossier.next_measurement && (
         <section>
-          <h3>Next best measurement</h3>
+          <h3>המדידה הבאה הטובה ביותר</h3>
           <p>
-            <strong>{dossier.next_measurement.kind}</strong> · EIG{" "}
-            {dossier.next_measurement.eig_score.toFixed(2)}
+            <strong>{label(MEASUREMENT_LABELS, dossier.next_measurement.kind)}</strong>{" "}
+            · רווח מידע צפוי {dossier.next_measurement.eig_score.toFixed(2)}
           </p>
           <p className="note">{dossier.next_measurement.rationale}</p>
           <button
             className="assayBtn"
             onClick={() => {
               const raw = window.prompt(
-                "Synthetic assay result — Au in ppb (demo of the field loop):",
+                "תוצאת מעבדה סינתטית — Au ב-ppb (הדגמת לולאת השטח):",
                 "42",
               );
               if (raw === null) return;
@@ -144,19 +165,19 @@ export function DossierPanel({
                 onSubmitAssay(dossier.id, value);
             }}
           >
-            Submit assay result → re-score
+            הזנת תוצאת מעבדה ← דירוג מחדש
           </button>
         </section>
       )}
 
       {score && dossier.score_history.length > 1 && (
         <section>
-          <h3>Score history</h3>
+          <h3>היסטוריית ציונים</h3>
           <ul className="history">
             {dossier.score_history.map((h, i) => (
               <li key={i} className="mono">
-                {new Date(h.at).toLocaleString()} → {h.score.toFixed(1)} (u=
-                {h.uncertainty.toFixed(2)})
+                {new Date(h.at).toLocaleString("he-IL")} ← {h.score.toFixed(1)}{" "}
+                (אי-ודאות {h.uncertainty.toFixed(2)})
               </li>
             ))}
           </ul>
@@ -165,18 +186,21 @@ export function DossierPanel({
 
       {dossier.trace && (
         <section>
-          <h3>Decision trace</h3>
+          <h3>נתיב החלטה</h3>
           <div className="mono small">
-            {dossier.trace.state_before} → {dossier.trace.state_after}
+            {label(STATE_LABELS, dossier.trace.state_before)} ←{" "}
+            {label(STATE_LABELS, dossier.trace.state_after)}
           </div>
-          <div className="mono small">hash {dossier.trace.output_hash.slice(0, 16)}…</div>
+          <div className="mono small">
+            hash {dossier.trace.output_hash.slice(0, 16)}…
+          </div>
           <p className="note">{dossier.trace.rationale_summary}</p>
           <details>
-            <summary>Derived features</summary>
+            <summary>פיצ'רים מחושבים</summary>
             <ul className="history">
               {Object.entries(dossier.trace.derived_features).map(([k, v]) => (
-                <li key={k} className="mono small">
-                  {k} = {v}
+                <li key={k} className="small">
+                  {featureLabel(k)} = <span className="mono">{v}</span>
                 </li>
               ))}
             </ul>

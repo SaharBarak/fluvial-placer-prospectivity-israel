@@ -248,17 +248,23 @@ class EvidenceRepository:
         self, segment_id: WaterwaySegmentId, radius_m: float = 3000.0
     ) -> Result[tuple[Evidence, ...], DatabaseError]:
         try:
+            # Ground-truth assays bind tightly to their own segment (200 m);
+            # regional evidence (geology, RS, water quality) joins at radius_m.
             id_rows = await self._session.execute(
                 text(
                     """
                     SELECT e.id FROM core.evidence e
                     JOIN core.waterway_segment ws ON ws.id = CAST(:sid AS uuid)
                     WHERE e.geom IS NOT NULL
-                      AND ST_DWithin(e.geom, ws.geom, :radius)
+                      AND ST_DWithin(
+                            e.geom, ws.geom,
+                            CASE WHEN e.kind = 'ASSAY_RESULT'
+                                 THEN CAST(:assay_radius AS float8)
+                                 ELSE CAST(:radius AS float8) END)
                     ORDER BY e.created_at
                     """
                 ),
-                {"sid": str(segment_id), "radius": radius_m},
+                {"sid": str(segment_id), "radius": radius_m, "assay_radius": 200.0},
             )
             ids = [row[0] for row in id_rows]
             if not ids:
