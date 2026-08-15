@@ -1,7 +1,7 @@
 [project]
 name = "goldflow"
 version = "0.1.0"
-description = "GoldFlow Israel — agentic geospatial prospecting for placer gold in flowing Israeli streams"
+description = "Evidence-gated assessment of fluvial placer gold prospectivity in perennial streams of northern Israel (GoldFlow research system)"
 requires-python = ">=3.13"
 dependencies = [
     "fastapi>=0.115",
