@@ -261,7 +261,7 @@ class EvidenceRepository:
                             CASE WHEN e.kind = 'ASSAY_RESULT'
                                  THEN CAST(:assay_radius AS float8)
                                  ELSE CAST(:radius AS float8) END)
-                    ORDER BY e.created_at
+                    ORDER BY e.created_at DESC
                     """
                 ),
                 {"sid": str(segment_id), "radius": radius_m, "assay_radius": 200.0},
@@ -274,7 +274,10 @@ class EvidenceRepository:
                     await self._session.execute(
                         select(EvidenceRow)
                         .where(EvidenceRow.id.in_(ids))
-                        .order_by(EvidenceRow.created_at)
+                        # Newest first: merge dedupe by (kind, reference) keeps the
+                        # first occurrence, so the freshest wording supersedes
+                        # legacy rows for the same source feature.
+                        .order_by(EvidenceRow.created_at.desc())
                     )
                 )
                 .scalars()

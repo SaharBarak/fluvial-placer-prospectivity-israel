@@ -115,7 +115,7 @@ class IngestionService:
         sources: dict[str, str] = {}
 
         osm_source = await self._sources.upsert_by_url(
-            name="OpenStreetMap waterways (Overpass)",
+            name="ערוצי נחלים — OpenStreetMap (Overpass)",
             kind="vector",
             authority_class=AuthorityClass.SECONDARY,
             url="https://overpass-api.de/api/interpreter#waterways",
@@ -123,7 +123,7 @@ class IngestionService:
             license_text=f"ODbL — {OSM_ATTRIBUTION}",
         )
         water_source = await self._sources.upsert_by_url(
-            name="Israel Water Authority — springs, discharge, hydrometric stations",
+            name="רשות המים — מעיינות, ספיקות ותחנות הידרומטריות",
             kind="tabular",
             authority_class=AuthorityClass.AUTHORITATIVE,
             url="https://data.gov.il/dataset/springs",
@@ -131,7 +131,7 @@ class IngestionService:
             license_text="data.gov.il open data",
         )
         gsi_source = await self._sources.upsert_by_url(
-            name="GSI 1:200,000 geological map (2014)",
+            name="המפה הגיאולוגית של ישראל 1:200,000 — המכון הגיאולוגי (2014)",
             kind="arcgis-feature",
             authority_class=AuthorityClass.AUTHORITATIVE,
             url="https://egozi.gsi.gov.il/arcgis/rest/services/Hosted/Israel_200000_2014_geology",
@@ -370,17 +370,16 @@ class IngestionService:
                             polygons_itm.append("(" + ", ".join(ring_texts) + ")")
                     if not polygons_itm:
                         continue
-                    description = str(
-                        feature.properties.get("name_eng")
-                        or feature.properties.get("name_heb")
-                        or ""
-                    )
+                    name_eng = str(feature.properties.get("name_eng") or "")
+                    name_heb = str(feature.properties.get("name_heb") or "")
                     self._session.add(
                         GeologicalUnitRow(
                             id=uuid4(),
                             unit_ref=f"gsi-formation/{feature.feature_ref}",
-                            description=description,
-                            lithology=description,
+                            # description = Hebrew display name; lithology = the
+                            # English GSI terms favorability keywords match on.
+                            description=name_heb or name_eng,
+                            lithology=name_eng or name_heb,
                             age=str(feature.properties.get("code") or ""),
                             geom="SRID=2039;MULTIPOLYGON(" + ", ".join(polygons_itm) + ")",
                             source_id=source_id,

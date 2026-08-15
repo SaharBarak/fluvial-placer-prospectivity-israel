@@ -66,11 +66,21 @@ def lithology_favorability(description: str) -> float:
 
 @dataclass(frozen=True, slots=True)
 class UpstreamLithology:
-    """A lithology unit intersecting the target's upstream catchment."""
+    """A lithology unit intersecting the target's upstream catchment.
+
+    ``description`` is the scoring text (English GSI lithology terms — the
+    favorability keywords match against it); ``display_name`` is the
+    human-facing Hebrew formation name for claims and dossiers.
+    """
 
     unit_reference: str
     description: str
     area_fraction: float  # fraction of upstream catchment area
+    display_name: str = ""
+
+    @property
+    def label(self) -> str:
+        return self.display_name or self.description
 
     def weighted_favorability(self) -> float:
         return lithology_favorability(self.description) * self.area_fraction

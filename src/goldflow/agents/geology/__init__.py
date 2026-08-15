@@ -56,7 +56,7 @@ def analyze_geology(
             location=segment_midpoint,
             observed_value=None,
             claim=(
-                f"ליתולוגיה במעלה האגן: '{lith.description}' מכסה "
+                f"ליתולוגיה במעלה האגן: '{lith.label}' מכסה "
                 f"{lith.area_fraction:.0%} מאזור הניקוז "
                 f"(התאמה {favorability:.2f})"
             ),

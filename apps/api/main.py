@@ -283,7 +283,7 @@ async def submit_assay(
             ),
             {
                 "id": str(uuid4()),
-                "name": f"Field assay {submission.lab or 'manual'}",
+                "name": f"בדיקת שטח — {submission.lab or 'ידני'}",
                 "url": f"assay://{submission.target_id}/{uuid4()}",
             },
         )

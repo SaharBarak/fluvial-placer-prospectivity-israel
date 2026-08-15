@@ -79,12 +79,12 @@ class SpatialQueryService:
                     , zone AS (
                         SELECT ST_Buffer(ST_Collect(DISTINCT geom), :buffer) AS g FROM seg
                     )
-                    SELECT gu.unit_ref, gu.description,
+                    SELECT gu.unit_ref, gu.lithology, gu.description,
                            SUM(ST_Area(ST_Intersection(gu.geom, zone.g))) AS ix_area,
                            (SELECT ST_Area(g) FROM zone) AS zone_area
                     FROM core.geological_unit gu, zone
                     WHERE ST_Intersects(gu.geom, zone.g)
-                    GROUP BY gu.unit_ref, gu.description
+                    GROUP BY gu.unit_ref, gu.lithology, gu.description
                     ORDER BY ix_area DESC
                     LIMIT 12
                     """
@@ -104,7 +104,10 @@ class SpatialQueryService:
                 lithologies.append(
                     UpstreamLithology(
                         unit_reference=str(row.unit_ref),
-                        description=str(row.description or ""),
+                        # lithology = English GSI terms the favorability keywords
+                        # match; description = Hebrew display name (backfilled).
+                        description=str(row.lithology or row.description or ""),
+                        display_name=str(row.description or ""),
                         area_fraction=min(1.0, float(row.ix_area or 0.0) / zone_area),
                     )
                 )
